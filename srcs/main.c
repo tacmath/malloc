@@ -13,6 +13,17 @@ int initHeader(t_header *header, size_t page) {
     return (1);
 }
 
+int addMemory(t_header *header, int pages) {
+    void *test;
+    printf("ptr : %X\n", header->origin);
+    printf("size : %d\n", header->memSize);
+    header->memSize += data.pageSize * pages;
+    test = mmap(header->origin, header->memSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0);
+    printf("size : %d\n", header->memSize);
+    printf("ptr : %X\n", test);
+    printf("ptr max : %X\n", header->origin + header->memSize);
+}
+
 int initData(void) {
     data.pageSize = getpagesize();
     initHeader(&data.tHeader, TINY_PAGE);
@@ -31,6 +42,60 @@ void show_alloc_mem(void) {
             data.tHeader.alloc[n].ptr + data.tHeader.alloc[n].size, data.tHeader.alloc[n].size);
 }
 
+void *ft_memcpy(void *s1, void *s2, size_t size) {
+    char modulo;
+    int     *st1;
+    int     *st2;
+    int n;
+    
+    st1 = (int*)s1;
+    st2 = (int*)s2;
+    modulo = size % sizeof(int);
+    size /= sizeof(int);
+    n  = -1;
+    while (++n < size)
+        st1[n] = st2[n];
+    n = -1;
+    while (++n < modulo)
+        ((char*)st1)[n] = ((char*)st2)[n];
+    return (s1);
+}
+
+void *ft_memrcpy(void *s1, void *s2, size_t size) {
+    int     *st1;
+    int     *st2;
+    char modulo;
+    int n;
+    
+    st1 = (int*)s1;
+    st2 = (int*)s2;
+    modulo = size % sizeof(int);
+    size -= modulo;
+    n = modulo;
+    while (n)
+        ((char*)st1)[size + n] = ((char*)st2)[size + n--];
+    n  = size / sizeof(int);
+    while (n)
+        st1[n] = st2[n--];
+    return (s1);
+}
+
+t_alloc *checkSpaceLeft(size_t size, t_header *header) {
+    int n;
+
+    n = -1;
+    while (++n < header->nb_alloc - 1) {
+        if (header->alloc[n + 1].ptr - (header->alloc[n].ptr + header->alloc[n].size) >= size) {
+            ft_memrcpy(&header->alloc[n + 2], &header->alloc[n + 1], (header->nb_alloc - n) * sizeof(t_alloc));
+            header->alloc[n + 1].ptr = header->alloc[n].ptr + header->alloc[n].size;
+            return (&header->alloc[n + 1]);
+        }
+    }
+    addMemory(header, TINY_PAGE);     //ajouer une variable pour les pages par realloc
+    header->alloc[n + 1].ptr = header->alloc[n].ptr + header->alloc[n].size;
+    return (&header->alloc[n + 1]);
+}
+
 void *createPtr(size_t size, t_header *header) {
     t_alloc *lastAlloc;
     t_alloc *newAlloc;
@@ -39,7 +104,9 @@ void *createPtr(size_t size, t_header *header) {
     if (header->nb_alloc) {
         lastAlloc = &header->alloc[header->nb_alloc - 1];
         newAlloc->ptr = lastAlloc->ptr + lastAlloc->size;
-        newAlloc->size = size; 
+        if (newAlloc->ptr + size - header->origin > header->memSize)
+            newAlloc = checkSpaceLeft(size, header);
+        newAlloc->size = size;
     }
     else {
         newAlloc->ptr = header->origin;
@@ -47,20 +114,6 @@ void *createPtr(size_t size, t_header *header) {
     }
     header->nb_alloc++;
     return (newAlloc->ptr);
-  /*  while (1) {
-        if (header->alloc->ptr) {
-            if (!header->alloc->next) {
-
-            }
-            if ((size_t)header->alloc->next - (size_t)(header->alloc->ptr + header->alloc->size) >= size) {
-
-            }
-        }
-        else {
-            if (header->alloc->prev)
-                header->alloc->ptr = header->origin;
-        }
-    }*/
 }
 
 void    alineSize(size_t *size) {
@@ -83,26 +136,75 @@ void *fmalloc(size_t size) {
 }
 
 void ffree(void *ptr) {
+    int n;
 
+    if (!ptr)
+        return ;
+    n = -1;
+    while (++n < data.tHeader.nb_alloc) {
+        if (data.tHeader.alloc[n].ptr == ptr && --data.tHeader.nb_alloc > n)
+            ft_memcpy(&data.tHeader.alloc[n], &data.tHeader.alloc[n + 1], (data.tHeader.nb_alloc - n) * sizeof(t_alloc));
+    }
 }
 
 void *fcalloc(size_t nmemb, size_t size) {
+    char *ptr;
+    size_t n;
 
+    size *= nmemb;
+    if ((ptr = fmalloc(size))) {
+        n = -1;
+        while (++n < size)
+            ptr[n] = 0;
+    }
+    return (ptr);
 }
 
 void *frealloc(void *ptr, size_t size) {
+    int n;
 
+    if (!ptr)
+        return (fmalloc(size));
+    if (!size) {
+        ffree(ptr);
+        return (0);
+    }
+    alineSize(&size);
+    if (size <= TINY) {
+        n = -1;
+        while (++n < data.tHeader.nb_alloc) {
+            if (data.tHeader.alloc[n].ptr == ptr && (n + 1 == data.tHeader.nb_alloc
+                || data.tHeader.alloc[n].ptr + size <= data.tHeader.alloc[n + 1].ptr)) {
+                data.tHeader.alloc[n].size = size;
+                return (ptr);
+            }    
+        }
+    }
+    ffree(ptr);
+    return (fmalloc(size));
 }
 
 #include <string.h>
 int main(void) {
     char *test;
-    printf("pointer = %X\n", fmalloc(10));
-    fmalloc(52);
-    fmalloc(500);
-    test = fmalloc(30);
-    strcpy(test, "hello\n");
-    printf("%s", test);
+    void *t1;
+    void *t2;
+    void *t3;
+    int n;
+
+    t1 = fmalloc(10);
+    t2 = fmalloc(52);
+    t3 = fmalloc(30);
     show_alloc_mem();
+    ffree(t2);
+    ffree(t1);
+//    ffree(t3);
+    fmalloc(5);
+    n = -1;
+    while (++n < 70)
+    t1 =    fmalloc(52);
+ //   show_alloc_mem();
+    strcpy(t1, "it works");
+    printf("%s\n", t1);
     return (0);
 }
