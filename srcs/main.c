@@ -18,7 +18,7 @@ int addMemory(t_header *header, int pages) {
     printf("ptr : %X\n", header->origin);
     printf("size : %d\n", header->memSize);
     header->memSize += data.pageSize * pages;
-    test = mmap(header->origin, header->memSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0);
+    test = mmap(header->origin, header->memSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_ | MAP_FIXED, -1, 0);
     printf("size : %d\n", header->memSize);
     printf("ptr : %X\n", test);
     printf("ptr max : %X\n", header->origin + header->memSize);
@@ -27,8 +27,8 @@ int addMemory(t_header *header, int pages) {
 int initData(void) {
     data.pageSize = getpagesize();
     initHeader(&data.tHeader, TINY_PAGE);
- /*   initHeader(&data.sHeader, SMALL_PAGE);
-    initHeader(&data.lHeader, LARGE_PAGE);*/
+    initHeader(&data.sHeader, SMALL_PAGE);
+ /*   initHeader(&data.lHeader, LARGE_PAGE);*/
     return (1);
 }
 
@@ -201,9 +201,9 @@ int main(void) {
 //    ffree(t3);
     fmalloc(5);
     n = -1;
-    while (++n < 70)
-    t1 =    fmalloc(52);
- //   show_alloc_mem();
+    while (++n < 200)
+    t1 =    fmalloc(50);
+    show_alloc_mem();
     strcpy(t1, "it works");
     printf("%s\n", t1);
     return (0);
