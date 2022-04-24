@@ -6,34 +6,34 @@
 #include <stdlib.h>
 
 #define _ANONY_ 0x20
-#define TINY 64
-#define SMALL 512
-#define TINY_PAGE 1
-#define SMALL_PAGE 8
+#define TINY 128
+#define SMALL 1024
+#define TINY_PAGE 2
+#define SMALL_PAGE 16
 #define LARGE_PAGE 64
 
 
 struct s_alloc {
-    void            *ptr;
+    struct s_alloc  *next;
+//    struct s_alloc  *prev;
     size_t          size;
 };
 typedef struct s_alloc t_alloc;
 
 struct s_header {
-    void        *origin;
-    t_alloc     *alloc;
-    size_t      nb_alloc;
-    size_t      headerSize;
-    size_t      memSize;
+    struct s_header *nextPage;
+    t_alloc         *first;
+    size_t          memLeft;
+    size_t          memSize;
 };
 
 typedef struct s_header t_header;
 
 struct s_malloc {
     size_t      pageSize;
-    t_header    tHeader;
-    t_header    sHeader;
-    t_header    lHeader;
+    t_header    *tHeader;
+    t_header    *sHeader;
+    t_header    *lHeader;
 };
 
 typedef struct s_malloc t_malloc;
