@@ -133,7 +133,7 @@ void    alineSize(size_t *size) {
         *size = *size - modulo + 16;
 }
 
-void *fmalloc(size_t size) {
+void *malloc(size_t size) {
     if (!size)
         return (0);
     alineSize(&size);
@@ -143,7 +143,7 @@ void *fmalloc(size_t size) {
         return(createPtr(size, data.tHeader));
     else if (size <= SMALL && (data.sHeader || initHeader(&data.sHeader, SMALL_PAGE)))
         return(createPtr(size, data.sHeader));
-    else if (data.lHeader || initHeader(&data.lHeader, LARGE_PAGE))
+    else if (data.lHeader || initHeader(&data.lHeader, LARGE_PAGE)) //augmenter la taille si elle est trop petite
         return(createPtr(size, data.lHeader));
     return (0);
 }
@@ -181,7 +181,7 @@ int freePtr(void *ptr, t_header *header) {              //free des pages si il y
 }
 
 
-void ffree(void *ptr) {
+void free(void *ptr) {
     if (!ptr)
         return ;
     if (freePtr(ptr, data.tHeader) || freePtr(ptr, data.sHeader) || freePtr(ptr, data.lHeader))
@@ -189,43 +189,80 @@ void ffree(void *ptr) {
     dprintf(2, "free pointer : %p not found", ptr);
 }
 
-void *fcalloc(size_t nmemb, size_t size) {
+void *calloc(size_t nmemb, size_t size) {
     char *ptr;
     size_t n;
 
     size *= nmemb;
-    if ((ptr = fmalloc(size))) {
+    if ((ptr = malloc(size))) {
         n = -1;
         while (++n < size)
             ptr[n] = 0;
     }
     return (ptr);
 }
-/*
-void *frealloc(void *ptr, size_t size) {
+
+void    *reallocPtr(t_header *page, t_alloc *alloc, size_t size) {
+    size_t *new;
+    size_t *old;
+    size_t n;
+
+    if (alloc->size >= size || (alloc->next && size <= (void*)alloc->next -((void*)alloc + sizeof(t_alloc))) 
+        || (!alloc->next && (void*)alloc + sizeof(t_alloc) + size <= (void*)page + page->memSize)) {
+        page->memLeft += size - alloc->size;
+        alloc->size = size;
+        return ((void*)alloc + sizeof(t_alloc));
+    }
+    if ((new = malloc(size))) {
+        size = alloc->size / sizeof(size_t);
+        old = (void*)alloc + sizeof(t_alloc);
+        n = 0;
+        while (n < size)
+            new[n] = old[n++];
+        free(old);
+        return (new);
+    }
+    return (0);
+}
+
+void *getReallocPtr(void *ptr, t_header *firstPage, size_t size) {
+    t_alloc *alloc;
+    t_header *page;
+
+    if (!firstPage)
+        return (0);
+    page = firstPage;
+    while (page) {
+        if ((void*)ptr >= (void*)page->first && (void*)ptr < (void*)page + page->memSize) {
+            alloc = page->first;
+            while (alloc) {
+                if ((void*)ptr == (void*)alloc + sizeof(t_alloc))
+                    return (reallocPtr(page, alloc, size));
+                alloc = alloc->next;
+            }
+        }
+        page = page->nextPage;
+    }
+    return (0);
+}
+
+void *realloc(void *ptr, size_t size) {
     int n;
+    void *new;
 
     if (!ptr)
-        return (fmalloc(size));
+        return (malloc(size));
     if (!size) {
-        ffree(ptr);
+        free(ptr);
         return (0);
     }
     alineSize(&size);
-    if (size <= TINY) {
-        n = -1;
-        while (++n < data.tHeader.nb_alloc) {
-            if (data.tHeader.alloc[n].ptr == ptr && (n + 1 == data.tHeader.nb_alloc
-                || data.tHeader.alloc[n].ptr + size <= data.tHeader.alloc[n + 1].ptr)) {
-                data.tHeader.alloc[n].size = size;
-                return (ptr);
-            }    
-        }
-    }
-    ffree(ptr);
-    return (fmalloc(size));
+    if ((new = getReallocPtr(ptr, data.tHeader, size)) || (new = getReallocPtr(ptr, data.sHeader, size))
+        || (new = getReallocPtr(ptr, data.lHeader, size)))
+        return (new);
+    return (0);
 }
-*/
+
 #include <string.h>
 int main(void) {
     char *test;
@@ -234,41 +271,50 @@ int main(void) {
     void *t3;
     int n;
 
-//    t1 = fmalloc(10);
-    t2 = fmalloc(100);
-    t3 = fmalloc(40);
+//    t1 = malloc(10);
+
+    t2 = malloc(100);
+ //   t3 = malloc(40);
+
+    
+     t2 = malloc(20);
+ //    show_alloc_mem();
 //    show_alloc_mem();
-    ffree(t2);
-   // ffree(t3);
+   // free(t3);
 //    printf("%s\n", t1);
   //  show_alloc_mem();
-  t3 = fmalloc(600);
+  t3 = malloc(600);
     n = -1;
   /*  while (++n < 10000)
-        t2 = fmalloc(10000);*/
+        t2 = malloc(10000);*/
     strcpy(t2, "it works");
     printf("%s\n", t2);
-//     t2 = fcalloc(10, 10);
+//     t2 = calloc(10, 10);
 //    memcpy(t2, "123212123132212312123212123132212312123212123132212312123212123132212312123212123132212312999", 93);
-    t3 = fmalloc(600);
-    t3 = fmalloc(600);
-    t3 = fmalloc(600);
-    t3 = fmalloc(6000);
+    t1 = malloc(600);
+    t3 = malloc(600);
+    t3 = malloc(600);
+    t3 = malloc(6000);
    
-    ffree(t3);
-    show_alloc_mem();
+    free(t3);
+    free(t1);
+    realloc(t2, 8000);
+    realloc(0, 1200);
+    
     printf("%s\n", t2);
-  /*  t2 = fmalloc(52);
-    t3 = fmalloc(30);
+        t2 = malloc(1024);
+    show_alloc_mem();
+  /*  t2 = malloc(52);
+    t3 = malloc(30);
     strcpy(t3, "it works");
 //    show_alloc_mem();
-    ffree(t2);
-    ffree(t1);
-//    ffree(t3);
-    fmalloc(5);
+    free(t2);
+    free(t1);
+//    free(t3);
+    malloc(5);
     n = -1;
     while (++n < 100)
-    t1 =    fmalloc(128);
+    t1 =    malloc(128);
   //  show_alloc_mem();
     
     printf("%s\n", t3);*/
