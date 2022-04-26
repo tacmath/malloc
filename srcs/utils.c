@@ -20,8 +20,10 @@ int addNewPage(t_header *header, size_t size) {
     pageMemSize = header->memSize;
     if (pageMemSize > data.pageSize * LARGE_PAGE)
         pageMemSize = data.pageSize * LARGE_PAGE;
-    if (size > pageMemSize - sizeof(t_header))
-        pageMemSize = size - (size % data.pageSize) + data.pageSize; 
+    if (size > pageMemSize - sizeof(t_header) - sizeof(t_alloc)) {
+        size += sizeof(t_header) + sizeof(t_alloc);
+        pageMemSize = size - (size % data.pageSize) + data.pageSize;
+    } 
     if (!(nextPage = mmap(header, pageMemSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)) || nextPage == (void*)0xffffffffffffffff)
         return (0);
     nextPage->memSize = pageMemSize;
@@ -43,11 +45,13 @@ void *calloc(size_t nmemb, size_t size) {
     char *ptr;
     size_t n;
 
+ //   pthread_mutex_lock(data.threadLock);
     size *= nmemb;
     if ((ptr = malloc(size))) {
         n = -1;
         while (++n < size)
             ptr[n] = 0;
     }
+ //   pthread_mutex_unlock(data.threadLock);
     return (ptr);
 }
