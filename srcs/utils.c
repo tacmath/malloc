@@ -1,13 +1,13 @@
 #include "malloc.h"
 
-int initHeader(t_header **header, size_t page) {
+int initHeader(t_header **header, size_t size) {
     t_header *firstPage;
 
-    if (!(*header = mmap(0, data.pageSize * page, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)))
+    if (!(*header = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)))
         return (0);
     firstPage = *header;
     firstPage->nextPage = 0;
-    firstPage->memSize = data.pageSize * page;
+    firstPage->memSize = size;
     firstPage->memLeft = firstPage->memSize - sizeof(t_header);
     firstPage->first = 0;
     return (1);
@@ -18,11 +18,11 @@ int addNewPage(t_header *header, size_t size) {
     size_t      pageMemSize;
     
     pageMemSize = header->memSize;
-    if (pageMemSize > data.pageSize * LARGE_PAGE)
-        pageMemSize = data.pageSize * LARGE_PAGE;
+    if (pageMemSize > LARGE_PAGE)
+        pageMemSize = LARGE_PAGE;
     if (size > pageMemSize - sizeof(t_header) - sizeof(t_alloc)) {
         size += sizeof(t_header) + sizeof(t_alloc);
-        pageMemSize = size - (size % data.pageSize) + data.pageSize;
+        pageMemSize = size - (size % PAGE_SIZE) + PAGE_SIZE;
     } 
     if (!(nextPage = mmap(header, pageMemSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)) || nextPage == (void*)0xffffffffffffffff)
         return (0);

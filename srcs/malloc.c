@@ -1,6 +1,6 @@
 #include "malloc.h"
 
-t_malloc data = {0, 0, 0, 0};
+t_malloc data = {0, 0, 0};
 
 static t_alloc *firstAlloc(size_t size, t_header *header) {
     t_alloc *newAlloc;
@@ -73,8 +73,6 @@ void *malloc(size_t size) {
     if (!size)
         return (0);
     alineSize(&size);
-    if (!data.pageSize)
-        data.pageSize = getpagesize();
     if (size <= TINY && (data.tHeader || initHeader(&data.tHeader, TINY_PAGE)))
         return(createPtr(size, data.tHeader));
     else if (size <= SMALL && (data.sHeader || initHeader(&data.sHeader, SMALL_PAGE)))

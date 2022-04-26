@@ -1,7 +1,5 @@
 #include "malloc.h"
 
-#include <stdio.h>
-
 char         hexConvert(char nb) {
     if (nb >= 0 && nb <= 9)
         return (nb + '0');
@@ -31,7 +29,38 @@ void		ft_putnbr(size_t nb)
 	}
 }
 
-static void show_alloc_type(t_header *header, char *typeName) {
+void        ft_hexdump(void *data, size_t size) {
+    char    hexdumpForma[] = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 |                |\n";
+    char *str;
+    int len;
+    int n;
+
+    str = data;
+    while (size > 0) {
+        if (size > 15)
+            len = 16;
+        else
+            len = size % 16;
+        n = -1;
+        while (++n < len) {
+            if (str[n])
+                ft_puthex(str[n], &hexdumpForma[n * 3], 2);
+            else {
+                hexdumpForma[n * 3] = '0';
+                hexdumpForma[n * 3 + 1] = '0';
+            }
+            if (str[n] >= 32 && str[n] <= 126)
+                hexdumpForma[49 + n] = str[n];
+            else
+                hexdumpForma[49 + n] = '.';
+        }
+        write(1, hexdumpForma, 67);
+        str += len;
+        size -= len;
+    }
+}
+
+static void show_alloc_type(t_header *header, char *typeName, char option) {
     t_alloc     *alloc;
     t_header *page;
     char    pageForma[] = " : XXXXXXXX - XXXXXXXX\n";
@@ -52,15 +81,22 @@ static void show_alloc_type(t_header *header, char *typeName) {
             write(1, allocForma, 22);
             ft_putnbr(alloc->size);
             write(1, " octets\n", 8);
-           // printf("%X - %X : %lu octets\n", (void*)alloc + sizeof(t_alloc), (void*)alloc + sizeof(t_alloc) + alloc->size, alloc->size);
+            if (option)
+                ft_hexdump((void*)alloc + sizeof(t_alloc), alloc->size);
             alloc = alloc->next;
         }
         page = page->nextPage;
     }
 }
 
+void show_alloc_mem_hex(void) {
+    show_alloc_type(data.tHeader, "TINY ", 1);
+    show_alloc_type(data.sHeader, "SMALL", 1);
+    show_alloc_type(data.lHeader, "LARGE", 1);
+}
+
 void show_alloc_mem(void) {
-    show_alloc_type(data.tHeader, "TINY ");
-    show_alloc_type(data.sHeader, "SMALL");
-    show_alloc_type(data.lHeader, "LARGE");
+    show_alloc_type(data.tHeader, "TINY ", 0);
+    show_alloc_type(data.sHeader, "SMALL", 0);
+    show_alloc_type(data.lHeader, "LARGE", 0);
 }
