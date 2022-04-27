@@ -45,13 +45,11 @@ void *calloc(size_t nmemb, size_t size) {
     char *ptr;
     size_t n;
 
- //   pthread_mutex_lock(data.threadLock);
     size *= nmemb;
     if ((ptr = malloc(size))) {
         n = -1;
         while (++n < size)
             ptr[n] = 0;
     }
- //   pthread_mutex_unlock(data.threadLock);
     return (ptr);
 }

@@ -90,13 +90,13 @@ static void show_alloc_type(t_header *header, char *typeName, char option) {
 }
 
 void show_alloc_mem_hex(void) {
-    show_alloc_type(data.tHeader, "TINY ", 1);
-    show_alloc_type(data.sHeader, "SMALL", 1);
-    show_alloc_type(data.lHeader, "LARGE", 1);
+    show_alloc_type(global_malloc.tHeader, "TINY ", 1);
+    show_alloc_type(global_malloc.sHeader, "SMALL", 1);
+    show_alloc_type(global_malloc.lHeader, "LARGE", 1);
 }
 
 void show_alloc_mem(void) {
-    show_alloc_type(data.tHeader, "TINY ", 0);
-    show_alloc_type(data.sHeader, "SMALL", 0);
-    show_alloc_type(data.lHeader, "LARGE", 0);
+    show_alloc_type(global_malloc.tHeader, "TINY ", 0);
+    show_alloc_type(global_malloc.sHeader, "SMALL", 0);
+    show_alloc_type(global_malloc.lHeader, "LARGE", 0);
 }

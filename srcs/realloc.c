@@ -59,8 +59,8 @@ void *realloc(void *ptr, size_t size) {
         return (0);
     }
     alineSize(&size);
-    if ((new = getReallocPtr(ptr, data.tHeader, size)) || (new = getReallocPtr(ptr, data.sHeader, size))
-        || (new = getReallocPtr(ptr, data.lHeader, size)))
+    if ((new = getReallocPtr(ptr, global_malloc.tHeader, size)) || (new = getReallocPtr(ptr, global_malloc.sHeader, size))
+        || (new = getReallocPtr(ptr, global_malloc.lHeader, size)))
         return (new);
     return (0);
 }

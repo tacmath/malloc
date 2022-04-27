@@ -4,7 +4,6 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <stdlib.h>
-//#include <pthread.h>
 
 #define _ANONY_ 0x20
 #define PAGE_SIZE getpagesize()
@@ -35,12 +34,11 @@ struct s_malloc {
     t_header    *tHeader;
     t_header    *sHeader;
     t_header    *lHeader;
- //   pthread_mutex_t *threadLock;
 };
 
 typedef struct s_malloc t_malloc;
 
-extern t_malloc data;
+extern t_malloc global_malloc;
 
 void *malloc(size_t size);
 void free(void *ptr);

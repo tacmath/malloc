@@ -36,7 +36,7 @@ static int freePtr(void *ptr, t_header *header) {              //free des pages 
 void free(void *ptr) {
     if (!ptr)
         return ;
-    if (freePtr(ptr, data.tHeader) || freePtr(ptr, data.sHeader) || freePtr(ptr, data.lHeader))
+    if (freePtr(ptr, global_malloc.tHeader) || freePtr(ptr, global_malloc.sHeader) || freePtr(ptr, global_malloc.lHeader))
         return ;
 //    dprintf(2, "free pointer : %p not found", ptr);
 }
