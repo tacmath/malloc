@@ -1,6 +1,27 @@
 #include "malloc.h"
 
-static int freePtr(void *ptr, t_header *header) {              //free des pages si il y a deux pages vides d'afilée
+static void freePage(t_header *header) {
+    t_header *page;
+    t_header *nextPage;
+    char n;
+
+    n = 0;
+    page = header;
+    nextPage = page->nextPage;
+    if (!page->first)
+        n++;
+    while (nextPage) {
+        if (!nextPage->first && ++n == 2) {
+            page->nextPage = nextPage->nextPage;
+            munmap(nextPage, nextPage->memSize);
+            return ;
+        }
+        page = nextPage;
+        nextPage = page->nextPage;
+    }
+}
+
+static int freePtr(void *ptr, t_header *header) {
     t_alloc *alloc;
     t_alloc *next;
     t_header *page;
@@ -15,6 +36,8 @@ static int freePtr(void *ptr, t_header *header) {              //free des pages 
             if (ptr == (void*)alloc + sizeof(t_alloc)) {
                 page->memLeft += sizeof(t_alloc) + alloc->size;
                 page->first = next;
+                if (!next)
+                    freePage(header);
                 return (1);
             }
             while (next) {
@@ -38,5 +61,4 @@ void free(void *ptr) {
         return ;
     if (freePtr(ptr, global_malloc.tHeader) || freePtr(ptr, global_malloc.sHeader) || freePtr(ptr, global_malloc.lHeader))
         return ;
-//    dprintf(2, "free pointer : %p not found", ptr);
 }
