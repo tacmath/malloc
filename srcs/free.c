@@ -9,7 +9,7 @@ static int freePtr(void *ptr, t_header *header) {              //free des pages 
         return (0);
     page = header;
     while (page) {
-        if ((void*)ptr >= (void*)page->first && (void*)ptr < (void*)page + page->memSize) {
+        if (page->first && (void*)ptr >= (void*)page->first && (void*)ptr < (void*)page + page->memSize) {
             alloc = page->first;
             next = alloc->next;
             if (ptr == (void*)alloc + sizeof(t_alloc)) {

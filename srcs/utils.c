@@ -24,7 +24,7 @@ int addNewPage(t_header *header, size_t size) {
         size += sizeof(t_header) + sizeof(t_alloc);
         pageMemSize = size - (size % PAGE_SIZE) + PAGE_SIZE;
     } 
-    if (!(nextPage = mmap(header, pageMemSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)) || nextPage == (void*)0xffffffffffffffff)
+    if (!(nextPage = mmap((void*)header + pageMemSize, pageMemSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)) || nextPage == (void*)0xffffffffffffffff)
         return (0);
     nextPage->memSize = pageMemSize;
     nextPage->nextPage = 0;
