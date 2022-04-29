@@ -9,7 +9,7 @@ char         hexConvert(char nb) {
 }
 
 void		ft_puthex(size_t nb, char* str, int len) {
-	if (nb && len) {
+	if (len) {
 		ft_puthex(nb / 16, str, --len);
         str[len] = hexConvert((char)(nb % 16));
 	}
