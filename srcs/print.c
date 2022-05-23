@@ -32,7 +32,7 @@ void		ft_putnbr(size_t nb)
 void        ft_hexdump(void *data, size_t size) {
     static char    hexdumpForma[] = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 |                |\n";
     static char    hexa[] = "0123456789ABCDEF";
-    char *str;
+    unsigned char *str;
     int len;
     int n;
 
@@ -45,7 +45,7 @@ void        ft_hexdump(void *data, size_t size) {
         n = -1;
         while (++n < len) {
                 hexdumpForma[n * 3] = hexa[str[n] / 16];
-                hexdumpForma[n * 3 + 1] = hexa[str[n] & 0x0F];
+                hexdumpForma[n * 3 + 1] = hexa[str[n] % 16];
             if (str[n] >= 32 && str[n] <= 126)
                 hexdumpForma[49 + n] = str[n];
             else

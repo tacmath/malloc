@@ -31,14 +31,12 @@ int addNewPage(t_header *header, size_t size) {
     nextPage->first = 0;
     nextPage->memLeft = nextPage->memSize - sizeof(t_header);
     header->nextPage = nextPage;
+    return (1);
 }
 
 void    alineSize(size_t *size) {
-    char modulo;
-
-    modulo = *size % 16;
-    if (modulo)
-        *size = *size - modulo + 16;
+    if (*size & 15)
+        *size = (((*size) >> 4) << 4) + 16;
 }
 
 void *calloc(size_t nmemb, size_t size) {

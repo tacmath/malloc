@@ -14,9 +14,9 @@ static void    *reallocPtr(t_header *page, t_alloc *alloc, size_t size) {
     if ((new = malloc(size))) {
         size = alloc->size / sizeof(size_t);
         old = (void*)alloc + sizeof(t_alloc);
-        n = 0;
-        while (n < size)
-            new[n] = old[n++];
+        n = -1;
+        while (++n < size)
+            new[n] = old[n];
     /*    size = alloc->size;
         n = (n - 1) * sizeof(size_t);
         while (n < size)
