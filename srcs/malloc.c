@@ -72,7 +72,7 @@ static void *createPtr(size_t size, t_header *header) {
 }
 
 void *malloc(size_t size) {
-    if (!size) 
+    if (!size)
         return (0);
     alineSize(&size);
     if (size <= TINY && (global_malloc.tHeader || initHeader(&global_malloc.tHeader, TINY_PAGE)))
