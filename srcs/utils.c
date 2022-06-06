@@ -3,7 +3,7 @@
 int initHeader(t_header **header, size_t size) {
     t_header *firstPage;
 
-    if (!(*header = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)))
+    if (!(*header = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)))
         return (0);
     firstPage = *header;
     firstPage->nextPage = 0;
@@ -24,7 +24,7 @@ int addNewPage(t_header *header, size_t size) {
         size += sizeof(t_header) + sizeof(t_alloc);
         pageMemSize = size - (size % PAGE_SIZE) + PAGE_SIZE;
     } 
-    if (!(nextPage = mmap((void*)header + pageMemSize, pageMemSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | _ANONY_, -1, 0)) || nextPage == (void*)0xffffffffffffffff)
+    if (!(nextPage = mmap((void*)header + pageMemSize, pageMemSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) || nextPage == (void*)0xffffffffffffffff)
         return (0);
     nextPage->memSize = pageMemSize;
     nextPage->nextPage = 0;
@@ -44,6 +44,8 @@ void *calloc(size_t nmemb, size_t size) {
     size_t n;
 
     size *= nmemb;
+    if (!size)
+        size += 16;
     if ((ptr = malloc(size))) {
         n = -1;
         while (++n < size)

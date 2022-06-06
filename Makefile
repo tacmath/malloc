@@ -25,6 +25,7 @@ all: $(NAME)
 
 $(NAME):$(OBJ) $(INC)
 	gcc -shared -o $@ $(OBJ) $(FLAG)
+	rm -f $(LINKNAME)
 	ln -s $(NAME) $(LINKNAME)
 
 clean:

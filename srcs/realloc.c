@@ -17,10 +17,6 @@ static void    *reallocPtr(t_header *page, t_alloc *alloc, size_t size) {
         n = -1;
         while (++n < size)
             new[n] = old[n];
-    /*    size = alloc->size;
-        n = (n - 1) * sizeof(size_t);
-        while (n < size)
-            (char*)new[n] = (char*)old[n++];*/
         free(old);
         return (new);
     }

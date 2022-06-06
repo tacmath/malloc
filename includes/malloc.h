@@ -4,8 +4,6 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <stdlib.h>
-
-#define _ANONY_ 0x20
 #define PAGE_SIZE getpagesize()
 #define TINY 128
 #define SMALL 1024
@@ -49,6 +47,5 @@ int addNewPage(t_header *header, size_t size);
 int initHeader(t_header **header, size_t page);
 void show_alloc_mem(void);
 void show_alloc_mem_hex(void);
-
 
 #endif
